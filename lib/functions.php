@@ -110,8 +110,10 @@ class zpanelx {
 		$webmail_url = zpanelx::getConfig('webmail_url');
 		
 		$template = file_get_contents('./themes/' . $theme . '/includes/header.tpl');
-		$template .= file_get_contents('./themes/' . $theme . '/includes/body.tpl');
+		$template = file_get_contents('./themes/' . $theme . '/includes/navbar.tpl');
+		$template .= file_get_contents('./themes/' . $theme . '/includes/content.tpl');
 		$template .= file_get_contents('./themes/' . $theme . '/includes/footer.tpl');
+		$template .= file_get_contents('./themes/' . $theme . '/includes/copyright.tpl');
 
 		if (!is_array(zpanelx::$zerror)) {
 			$template = str_replace('{{error}}', "", $template);
