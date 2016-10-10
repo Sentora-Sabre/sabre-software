@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Create user page for ZPX billing API integration
+ * Create user page for Sabre API integration
  *
  * @author Martin Kollerup
  * @copyright martinkole
@@ -16,18 +16,18 @@ $head = null;
 $title = null;
 $template = null;
 $package_name = null;
-$theme = zpanelx::getConfig('theme');
+$theme = sentora::getConfig('theme');
 
 //Are there a id?
 if (empty($id)) {
-	zpanelx::error('No package selected');
-	echo zpanelx::template("Error", "", "");
+	sentora::error('No package selected');
+	echo sentora::template("Error", "", "");
 	die();
 }
 //Only digits?
 else if (!preg_match('/^\d+$/', $id)) {
-	zpanelx::error('Invalid package id');
-	echo zpanelx::template("Error", "", "");
+	sentora::error('Invalid package id');
+	echo sentora::template("Error", "", "");
 	die();
 }
 
@@ -53,68 +53,68 @@ if (isset($_POST['submit'])) {
 
 	//start by checking for missing inputs and check if they are lega!
 	if (empty($username) || $username == "Username") {
-		zpanelx::error("Username missing");
+		sentora::error("Username missing");
 	}
 	if (empty($email) || $email == "Email") {
-		zpanelx::error("Email address missing");
+		sentora::error("Email address missing");
 	} else {
 		if (!preg_match('/^[a-z0-9]+([_\\.-][a-z0-9]+)*@([a-z0-9]+([\.-][a-z0-9]+)*)+\\.[a-z]{2,}$/i', $email)) {
-			zpanelx::error("Email is not true");
+			sentora::error("Email is not true");
 		}
 	}
 	if (empty($fullname) || $fullname == "Full name") {
-		zpanelx::error("Full name missing");
+		sentora::error("Full name missing");
 	}
 	if (empty($address) || $address == "Address") {
-		zpanelx::error("Address missing");
+		sentora::error("Address missing");
 	}
 	if (empty($postcode) || $postcode == "Post code") {
-		zpanelx::error("Postcode missing");
+		sentora::error("Postcode missing");
 	} else {
 		if (preg_match("/^([1]-)?[0-9]{3}-[0-9]{3}-[0-9]{4}$/i", $postcode)) {
-			zpanelx::error("Telephone is not valid");
+			sentora::error("Telephone is not valid");
 		}
 	}
 	if (empty($telephone) || $telephone == "Telephone") {
-		zpanelx::error("Telephone number missing");
+		sentora::error("Telephone number missing");
 	} else {
 		if (preg_match("/^([1]-)?[0-9]{3}-[0-9]{3}-[0-9]{4}$/i", $telephone)) {
-			zpanelx::error("Telephone is not valid");
+			sentora::error("Telephone is not valid");
 		}
 	}
 	if (empty($payperiod)) {
-		zpanelx::error("Payment Period is missing");
+		sentora::error("Payment Period is missing");
 	} else {
 		if (preg_match("/^([1]-)?[0-9]{3}-[0-9]{3}-[0-9]{4}$/i", $payperiod)) {
-			zpanelx::error("Payment Period is not valid");
+			sentora::error("Payment Period is not valid");
 		}
 	}
 
 	//TODO: re-enable Captcha
 	//disabling captcha for dev purpose
 	if (empty($captcha_response) || empty($captcha_challenge)) {
-		zpanelx::error("Captcha Challenge is missing");
+		sentora::error("Captcha Challenge is missing");
 	} else {
-		$privatekey = zpanelx::getConfig('rc_private_key');
+		$privatekey = sentora::getConfig('rc_private_key');
 		$resp = recaptcha_check_answer($privatekey, $_SERVER["REMOTE_ADDR"], $captcha_challenge, $captcha_response);
 
 		if (!$resp -> is_valid) {
-			zpanelx::error("Captcha Challenge is not valid");
+			sentora::error("Captcha Challenge is not valid");
 		} else {
 
 			//is the username already used?
 			$data = "<username>" . $username . "</username>";
-			$usernameExits = zpanelx::api("billing", "UsernameExits", $data);
+			$usernameExits = sentora::api("billing", "UsernameExits", $data);
 
 			if ($usernameExits['code'] != "3") {
-				zpanelx::error($usernameExits['human']);
+				sentora::error($usernameExits['human']);
 			}
 			//If no error have been added create the user
-			if (empty(zpanelx::$zerror)) {
-				$token = zpanelx::generateToken();
-				$pwd = zpanelx::generatePassword();
-				$data = '<resellerid>' . zpanelx::getConfig('reseller_id') . '</resellerid>
-		<groupid>' . zpanelx::getConfig('group_id') . '</groupid>
+			if (empty(sentora::$zerror)) {
+				$token = sentora::generateToken();
+				$pwd = sentora::generatePassword();
+				$data = '<resellerid>' . sentora::getConfig('reseller_id') . '</resellerid>
+		<groupid>' . sentora::getConfig('group_id') . '</groupid>
 		<username>' . $username . '</username>
 		<companyname>' . $companyname . '</companyname>
 		<fullname>' . $fullname . '</fullname>
@@ -131,13 +131,13 @@ if (isset($_POST['submit'])) {
 		<buy_domain>' . $buy_domain . '</buy_domain>
 		';
 
-				$createBilling = zpanelx::api("billing", "CreateClient", $data);
+				$createBilling = sentora::api("billing", "CreateClient", $data);
 
 				//create invoice
 				if ($createBilling['code'] == "1") {
 					//Request for the package prices
 					$data = "<pk_id>" . $id . "</pk_id>";
-					$package = zpanelx::api("billing", "Package", $data);
+					$package = sentora::api("billing", "Package", $data);
 					if (!empty($package['package']['id'])) {
 						$hosting_options = json_decode($package['package']['hosting'], true);
 
@@ -151,7 +151,7 @@ if (isset($_POST['submit'])) {
 
 							if ($period_amt) {
 								$payment_desc = '"pk_id":' . $id . ',"price":"' . $period_amt . '","period":"' . $payperiod . '"';
-								$token = zpanelx::generateToken();
+								$token = sentora::generateToken();
 								$data = '<user_id>' . $createBilling['uid'] . '</user_id>
 		                <amount>' . $period_amt . '</amount>
 		                <desc>{' . $payment_desc . '}</desc>
@@ -159,7 +159,7 @@ if (isset($_POST['submit'])) {
 		                <token>' . $token . '</token>
 		                ';
 
-								$createInvoice = zpanelx::api("billing", "CreateInvoice", $data);
+								$createInvoice = sentora::api("billing", "CreateInvoice", $data);
 							}
 						}
 					}
@@ -169,8 +169,8 @@ if (isset($_POST['submit'])) {
 					header('Location: pay.php?id=' . $token);
 				} else {
 
-					zpanelx::error("Error creating billing");
-					zpanelx::sendemail(zpanelx::getConfig('error_email'), "Error creating billing", "The invoice have not been created for user: " . $username . "(" . $email . ") Error code:" . $createBilling['create_invoice']);
+					sentora::error("Error creating billing");
+					sentora::sendemail(sentora::getConfig('error_email'), "Error creating billing", "The invoice have not been created for user: " . $username . "(" . $email . ") Error code:" . $createBilling['create_invoice']);
 				}
 			}
 		}
@@ -178,14 +178,14 @@ if (isset($_POST['submit'])) {
 }//end submit
 //Request for the package prices
 $data = "<pk_id>" . $id . "</pk_id>";
-$package = zpanelx::api("billing", "Package", $data);
+$package = sentora::api("billing", "Package", $data);
 
 if (!empty($package['package']['id'])) {
 	$package_name = $package['package']['name'];
 	$hosting = $package['package']['hosting'];
 	$domain = $package['package']['domain'];
 } else {
-	zpanelx::error("Error getting package data", true, false);
+	sentora::error("Error getting package data", true, false);
 }
 
 //Adding the price from xmws to input fields
@@ -193,14 +193,14 @@ if (!empty($package_name)) {
 
 	//Get the setting
 	$data = "<settings><setting>payment.cs</setting></settings>";
-	$setting = zpanelx::api("billing", "Setting", $data);
+	$setting = sentora::api("billing", "Setting", $data);
 	$cs = $setting['settings']['payment.cs'];
 
 	$payoptions = json_decode($hosting, true);
 	$payoption = null;
 
 	foreach ($payoptions['hosting'] as $option) {
-		$payoption .= "<input type=\"radio\" name=\"payperiod\" value=\"" . $option['month'] . "\">" . $option['month'] . " month @ " . $cs . " " . zpanelx::getConfig('currency_symbol') . $option['price'] . "</input><br />";
+		$payoption .= "<input type=\"radio\" name=\"payperiod\" value=\"" . $option['month'] . "\">" . $option['month'] . " month @ " . $cs . " " . sentora::getConfig('currency_symbol') . $option['price'] . "</input><br />";
 	}
 	//Insert values to template
 	$template = file_get_contents('themes/' . $theme . '/billing.tpl');
@@ -208,7 +208,7 @@ if (!empty($package_name)) {
 	$template = str_replace('{{packagename}}', htmlentities($package_name, ENT_QUOTES), $template);
 	$template = str_replace('{{payoptions}}', $payoption, $template);
 	$template = str_replace('{{pid}}', $id, $template);
-	$template = str_replace('{{recaptcha}}', recaptcha_get_html(zpanelx::getConfig('rc_public_key'), $verify -> error, zpanelx::getConfig('use_ssl')), $template);
+	$template = str_replace('{{recaptcha}}', recaptcha_get_html(sentora::getConfig('rc_public_key'), $verify -> error, sentora::getConfig('use_ssl')), $template);
 	$title = "Buy hosting";
 
 	//if post use the entered value, else enter the default values
@@ -234,8 +234,8 @@ if (!empty($package_name)) {
 	$template = ($transfer_checked ? str_replace('{{transfer_checked}}', $transfer_checked, $template) : str_replace('{{transfer_checked}}', "", $template));
 	$template = str_replace('<input type="radio" name="payperiod" value="' . $payperiod . '">', '<input type="radio" name="payperiod" value="' . $payperiod . '" checked>', $template);
 } else {
-	zpanelx::error("Invalid package selected", false, true);
+	sentora::error("Invalid package selected", false, true);
 }
 
-echo zpanelx::template($title, $head, $template);
+echo sentora::template($title, $head, $template);
 ?>
