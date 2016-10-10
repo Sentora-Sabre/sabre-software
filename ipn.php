@@ -14,7 +14,7 @@ ini_set('error_log', dirname(__FILE__) . '/log/ipn_errors.log');
 
 require_once('lib/functions.php');
 
-$paypalurl = (zpanelx::getConfig('test')) ? 'https://www.sandbox.paypal.com/cgi-bin/webscr' : 'https://www.paypal.com/cgi-bin/webscr';
+$paypalurl = (sentora::getConfig('test')) ? 'https://www.sandbox.paypal.com/cgi-bin/webscr' : 'https://www.paypal.com/cgi-bin/webscr';
 
 // STEP 1: Read POST data from PAYPAL
 
@@ -67,7 +67,7 @@ curl_close($ch);
 if (strcmp($res, "VERIFIED") == 0) {
 
     $data = "<settings><setting>system.test</setting><setting>payment.email_paypal</setting><setting>payment.cs</setting><setting>payment.email_error</setting></settings>";
-    $setting = zpanelx::api("billing", "setting", $data);
+    $setting = sentora::api("billing", "setting", $data);
     $setting = $setting['settings'];
 
     $item_name = $_POST['item_name'];
@@ -81,18 +81,18 @@ if (strcmp($res, "VERIFIED") == 0) {
     $payer_email = $_POST['payer_email'];
 
     if ($business != $setting['payment.email_paypal']) {
-        zpanelx::error("INVALID PAYMENT: A wrong paypal email have been used: " . $business . " and invoice id: " . $ipninvoice);
+        sentora::error("INVALID PAYMENT: A wrong paypal email have been used: " . $business . " and invoice id: " . $ipninvoice);
     }
     if ($payment_currency != $setting['payment.cs']) {
-        zpanelx::error("INVALID PAYMENT: Paypal returned a wrong currency(" . $payment_currency . ") relative to the settings. Invice id: " . $ipninvoice);
+        sentora::error("INVALID PAYMENT: Paypal returned a wrong currency(" . $payment_currency . ") relative to the settings. Invice id: " . $ipninvoice);
     }
 
     //Check if the invoice id exits or have been paid
     $data = "<token>" . $ipninvoice . "</token>";
-    $invoice = zpanelx::api("billing", "Invoice", $data);
+    $invoice = sentora::api("billing", "Invoice", $data);
 
     if ($invoice['code'] == "0") {
-        zpanelx::error("Invoice id was not found");
+        sentora::error("Invoice id was not found");
     } elseif ($invoice['code'] == "1") {
         $inv_user = $invoice['invoice']['user'];
         $inv_desc = $invoice['invoice']['desc'];
@@ -100,47 +100,47 @@ if (strcmp($res, "VERIFIED") == 0) {
         $inv_id = $invoice['invoice']['id'];
         $inv_status = $invoice['invoice']['status'];
     } else {
-        zpanelx::error("Invoice data could not be loaded");
+        sentora::error("Invoice data could not be loaded");
     }
 
     if (!$inv_user) {
         //Forcing to show the error
-        zpanelx::error("Invoice id was not found in the system");
+        sentora::error("Invoice id was not found in the system");
     } elseif ($inv_status == "1") {
         //FOrcing to show the error
-        zpanelx::error("This invoice has already been paid.");
+        sentora::error("This invoice has already been paid.");
     }
 
     //Do the user have paid the same as we want!?
     //TODO: Add something with tax
     if ($inv_amount != $_POST['mc_gross']) {
-        zpanelx::error("INVALID PAYMENT: " . $ipninvoice . " (invoice number) - " . $payment_amount . " (payment received) - " . $inv_amount . " (invoice amount)");
+        sentora::error("INVALID PAYMENT: " . $ipninvoice . " (invoice number) - " . $payment_amount . " (payment received) - " . $inv_amount . " (invoice amount)");
     }
 
     $data = "<method>Paypal</method><user_id>" . $inv_user . "</user_id><txn_id>" . $txn_id . "</txn_id><token>" . $ipninvoice . "</token>";
 
 
-    $invoice = zpanelx::api("billing", "Payment", $data);
+    $invoice = sentora::api("billing", "Payment", $data);
 
     switch ($invoice['code']) {
         case "1":
             //Really going to do nothing!
             break;
         case "2":
-            zpanelx::error("PAYMENT ERROR: Could not create invoice");
+            sentora::error("PAYMENT ERROR: Could not create invoice");
             break;
         case "3":
-            zpanelx::error("PAYMENT ERROR: Could not select inv_desc");
+            sentora::error("PAYMENT ERROR: Could not select inv_desc");
             break;
         case "4":
-            zpanelx::error("PAYMENT ERROR: Could not activate user");
+            sentora::error("PAYMENT ERROR: Could not activate user");
             break;
         case "5":
-            zpanelx::error("PAYMENT ERROR: Could not add to x_rb_billing");
+            sentora::error("PAYMENT ERROR: Could not add to x_sa_billing");
             break;
     }
 } else if (strcmp($res, "INVALID") == 0) {
     // log for manual investigation
-    zpanelx::sendmail($setting['payment.email_error'], 'Invalid IPN', 'error ' . $ipninvoice);
+    sentora::sendmail($setting['payment.email_error'], 'Invalid IPN', 'error ' . $ipninvoice);
 }
 ?>
