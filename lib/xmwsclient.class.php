@@ -125,15 +125,15 @@ class xmwsclient {
             $ctx = stream_context_create($params);
             $fp = @fopen($url, 'r', false, $ctx);
             if (!$fp) {
-                zpanelx::error("Problem reading data from " . $url . " ".error_get_last(),false,true);
+                sentora::error("Problem reading data from " . $url . " ".error_get_last(),false,true);
             }
             $content = @stream_get_contents($fp);
             if ($content == false) {
-                zpanelx::error("Problem reading data from " . $url . " ".error_get_last(),false,true);
+                sentora::error("Problem reading data from " . $url . " ".error_get_last(),false,true);
             }
 
         } else {
-            zpanelx::error("Fopen or/and allow_url_fopen is disabled. <br /> cURL is not installed.<br />Please activate / install one of them, to get this to work. ",false,true);
+            sentora::error("Fopen or/and allow_url_fopen is disabled. <br /> cURL is not installed.<br />Please activate / install one of them, to get this to work. ",false,true);
         }
         //print_r($content);
         return $content;
