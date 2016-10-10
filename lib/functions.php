@@ -104,10 +104,10 @@ class zpanelx {
 	 * @return string template
 	 */
 	static function template($title, $head, $body) {
-		$company = zpanelx::getConfig('company');
-		$theme = zpanelx::getConfig('theme');
-		$control_panel = zpanelx::getConfig('control_panel');
-		$webmail_url = zpanelx::getConfig('webmail_url');
+		$company = sentora::getConfig('company');
+		$theme = sentora::getConfig('theme');
+		$control_panel = sentora::getConfig('control_panel');
+		$webmail_url = sentora::getConfig('webmail_url');
 		
 		$template = file_get_contents('./themes/' . $theme . '/includes/header.tpl');
 		$template = file_get_contents('./themes/' . $theme . '/includes/navbar.tpl');
@@ -115,11 +115,11 @@ class zpanelx {
 		$template .= file_get_contents('./themes/' . $theme . '/includes/footer.tpl');
 		$template .= file_get_contents('./themes/' . $theme . '/includes/copyright.tpl');
 
-		if (!is_array(zpanelx::$zerror)) {
+		if (!is_array(sentora::$zerror)) {
 			$template = str_replace('{{error}}', "", $template);
 		} else {
 			$errors = "";
-			foreach (zpanelx::$zerror as $key => $error) {
+			foreach (sentora::$zerror as $key => $error) {
 				$errors .= $error . "<br />";
 			}
 			$template = str_replace('{{error}}', $errors, $template);
@@ -145,10 +145,10 @@ class zpanelx {
 		//Find the url and api from the config.php.
 		//This can be used if you are having different API connections to different servers on ZPX
 		if (empty($url)) {
-			$url = self::getConfig("zpanel_url");
+			$url = self::getConfig("sentora_url");
 		}
 		if (empty($api)) {
-			$api = self::getConfig("zpanel_api");
+			$api = self::getConfig("sentora_api");
 		}
 
 		//Do the url have the scheme
@@ -180,10 +180,10 @@ class zpanelx {
 	 */
 
 	static function error($error, $debug = false, $force = false) {
-		if (!is_array(zpanelx::$zerror)) {
-			zpanelx::$zerror = array();
+		if (!is_array(sentora::$zerror)) {
+			sentora::$zerror = array();
 		}
-		array_push(zpanelx::$zerror, $error);
+		array_push(sentora::$zerror, $error);
 
 		if ($force) {
 			echo self::template("Error", "", "");
