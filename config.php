@@ -6,8 +6,8 @@ class zConfig {
 	public $test = true; //true will enable Paypal Sandbox
 	public $DEBUG = true; //false disable
 	
-   	static $zpanel_api = ''; // API Key can be found in your zpanel database
-   	static $zpanel_url = ''; //or IP/URL of zpanel server
+   	static $sentora_api = ''; // API Key can be found in your zpanel database
+   	static $sentora_url = ''; //or IP/URL of zpanel server
    	public $use_ssl = 'false';
 	
 	public $theme = 'default'; //themes are in a subdirectory in the themes folder
