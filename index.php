@@ -14,13 +14,13 @@ require_once ('lib/functions.php');
 $head = null;
 $id = (isset($_GET['id'])) ? $_GET['id'] : "";
 $packetlist = null;
-$theme = zpanelx::getConfig('theme');
+$theme = sentora::getConfig('theme');
 
-//Get packages from zpanelx
-$listPackages = zpanelx::api("billing", "PackageList", "");
+//Get packages from Sentora
+$listPackages = sentora::api("billing", "PackageList", "");
 
 if (empty($listPackages)) {
-	zpanelx::error("No packages where found", false, true);
+	sentora::error("No packages where found", false, true);
 }
 
 //Check how the array is build. xmws.class is gennerating different arrays based on the number of packages.
@@ -36,7 +36,7 @@ foreach ($listPackages as $row) {
 		array_push($price, $host['price']);
 	}
 	$price = min($price);
-	$price = zpanelx::getConfig('currency_symbol') . $price;
+	$price = sentora::getConfig('currency_symbol') . $price;
 	$packetlist = file_get_contents('themes/' . $theme . '/packagelist.tpl');
 
 	//If a id have been added to the url it will be checked.
@@ -96,6 +96,6 @@ window.onload=function(){
 }</script>';
 
 //return template
-echo zpanelx::template($title, $head, $template);
-print_r(zpanelx::$zerror);
+echo sentora::template($title, $head, $template);
+print_r(sentora::$zerror);
 ?>
